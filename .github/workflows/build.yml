@@ -60,28 +60,26 @@ jobs:
           git clone --recursive --branch ${{ env.kernelBranch }} \
             ${{ env.kernelRepo }} ${{ env.kernelName }} --depth=1
 
-      - name: "💫 Get Clang toolchain (clang-r563880c)"
+      - name: "💫 Get Clang toolchain (clang-r563880c via NDK r29)"
         working-directory: ./${{ env.kernelDir }}
         run: |
-          mkdir -p clang
           wget -q --show-progress \
-            "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r563880c.tar.gz" \
-            -O clang-r563880c.tar.gz
-          tar -xzf clang-r563880c.tar.gz -C clang
-          rm clang-r563880c.tar.gz
-          echo "$(pwd)/clang/bin" >> $GITHUB_PATH
+            "https://dl.google.com/android/repository/android-ndk-r29-linux.zip" \
+            -O ndk.zip
+          unzip -q ndk.zip
+          rm ndk.zip
+          NDK_DIR=$(find . -maxdepth 1 -name "android-ndk-r29" -type d)
+          CLANG_DIR="$NDK_DIR/toolchains/llvm/prebuilt/linux-x86_64"
+          echo "$(pwd)/$CLANG_DIR/bin" >> $GITHUB_PATH
           echo "Clang version:"
-          $(pwd)/clang/bin/clang --version
+          $(pwd)/$CLANG_DIR/bin/clang --version
 
       - name: "💫 Get GAS (binutils)"
         working-directory: ./${{ env.kernelDir }}
         run: |
-          mkdir -p gas
-          wget -q --show-progress \
-            "https://android.googlesource.com/platform/prebuilts/gas/linux-x86/+archive/refs/heads/master.tar.gz" \
-            -O gas.tar.gz
-          tar -xzf gas.tar.gz -C gas
-          rm gas.tar.gz
+          git clone --depth=1 \
+            https://android.googlesource.com/platform/prebuilts/gas/linux-x86 \
+            gas
           echo "$(pwd)/gas" >> $GITHUB_PATH
 
       - name: "😎 Set build args"
