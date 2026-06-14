@@ -107,7 +107,6 @@ jobs:
           echo "args=$ARGS" >> $GITHUB_OUTPUT
           echo "Build args: $ARGS"
 
-      - name: "😋 Integrate KernelSU-Next v1.0.4"
       - name: "😋 Integrate KernelSU (rsuntk + manual hook 4.19)"
         working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
         if: ${{ env.withKernelSU == 'true' }}
