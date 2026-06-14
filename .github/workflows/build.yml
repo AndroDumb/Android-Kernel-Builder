@@ -114,9 +114,9 @@ jobs:
           # Limpiar instalaciones previas si existen
           rm -rf KernelSU drivers/kernelsu
 
-          # Instalar KernelSU-Next rama stable (legacy para non-GKI 4.x)
+          # Instalar KernelSU-Next rama next (legacy para non-GKI 4.x ya que stable no funcionó)
           curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" \
-            | bash -s stable
+            | bash -s next
 
           # Activar kprobes en el defconfig base (necesario para non-GKI)
           DEFCONFIG="arch/arm64/configs/vendor/bengal-perf_defconfig"
