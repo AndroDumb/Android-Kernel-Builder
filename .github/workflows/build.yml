@@ -114,7 +114,7 @@ jobs:
           rm -rf KernelSU drivers/kernelsu
 
           curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" \
-         | bash -s legacy
+            | bash -s legacy
 
           DEFCONFIG="arch/arm64/configs/vendor/bengal-perf_defconfig"
           grep -q "CONFIG_KPROBES=y" $DEFCONFIG || echo -e "\nCONFIG_KPROBES=y" >> $DEFCONFIG
