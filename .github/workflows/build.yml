@@ -107,24 +107,21 @@ jobs:
           echo "args=$ARGS" >> $GITHUB_OUTPUT
           echo "Build args: $ARGS"
 
-      - name: "😋 Integrate KernelSU-Next"
+      - name: "😋 Integrate KernelSU-Next v1.0.4"
         working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
         if: ${{ env.withKernelSU == 'true' }}
         run: |
-          # Limpiar instalaciones previas si existen
           rm -rf KernelSU drivers/kernelsu
 
-          # Instalar KernelSU-Next rama next (legacy para non-GKI 4.x ya que stable no funcionó)
           curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" \
-            | bash -s next
+            | bash -s v1.0.4
 
-          # Activar kprobes en el defconfig base (necesario para non-GKI)
           DEFCONFIG="arch/arm64/configs/vendor/bengal-perf_defconfig"
           grep -q "CONFIG_KPROBES=y" $DEFCONFIG || echo -e "\nCONFIG_KPROBES=y" >> $DEFCONFIG
           grep -q "CONFIG_HAVE_KPROBES=y" $DEFCONFIG || echo -e "\nCONFIG_HAVE_KPROBES=y" >> $DEFCONFIG
           grep -q "CONFIG_KPROBE_EVENTS=y" $DEFCONFIG || echo -e "\nCONFIG_KPROBE_EVENTS=y" >> $DEFCONFIG
 
-          echo "✅ KernelSU-Next integrado correctamente"
+          echo "✅ KernelSU-Next v1.0.4 integrado"
           cat KernelSU/kernel/Kconfig | head -5 || true
 
       - name: "👍 Make merged defconfig (bengal-perf + moto-bengal + hawao)"
