@@ -63,23 +63,25 @@ jobs:
       - name: "💫 Get Clang toolchain (clang-r563880c)"
         working-directory: ./${{ env.kernelDir }}
         run: |
-          # Solo clonamos el subdirectorio clang-r563880c usando sparse checkout
-          git clone --depth=1 --filter=blob:none --sparse \
-            https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 \
-            clang-aosp
-          cd clang-aosp
-          git sparse-checkout set clang-r563880c
-          cd ..
-          echo "$(pwd)/clang-aosp/clang-r563880c/bin" >> $GITHUB_PATH
+          mkdir -p clang
+          wget -q --show-progress \
+            "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r563880c.tar.gz" \
+            -O clang-r563880c.tar.gz
+          tar -xzf clang-r563880c.tar.gz -C clang
+          rm clang-r563880c.tar.gz
+          echo "$(pwd)/clang/bin" >> $GITHUB_PATH
           echo "Clang version:"
-          ./clang-aosp/clang-r563880c/bin/clang --version
+          $(pwd)/clang/bin/clang --version
 
       - name: "💫 Get GAS (binutils)"
         working-directory: ./${{ env.kernelDir }}
         run: |
-          git clone --depth=1 \
-            https://android.googlesource.com/platform/prebuilts/gas/linux-x86 \
-            gas
+          mkdir -p gas
+          wget -q --show-progress \
+            "https://android.googlesource.com/platform/prebuilts/gas/linux-x86/+archive/refs/heads/master.tar.gz" \
+            -O gas.tar.gz
+          tar -xzf gas.tar.gz -C gas
+          rm gas.tar.gz
           echo "$(pwd)/gas" >> $GITHUB_PATH
 
       - name: "😎 Set build args"
