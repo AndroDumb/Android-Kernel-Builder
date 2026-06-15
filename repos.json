@@ -1,10 +1,10 @@
 [
   {
     "kernelSource": {
-      "name": "hawao-kernel",
+      "name": "devon-kernel",
       "repo": "https://github.com/AndroDumb/android_kernel_motorola_sm6225",
       "branch": "lineage-23.2",
-      "device": "hawao"
+      "device": "devon"
     },
     "withKernelSU": true,
     "toolchains": [
