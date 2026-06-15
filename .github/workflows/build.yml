@@ -1,4 +1,4 @@
-name: "Build kernel - Motorola G52 (hawao)"
+name: "Build kernel - Motorola G42 (hawao)"
 
 env:
   CONFIGURATION: "repos.json"
@@ -145,7 +145,7 @@ jobs:
             ${{ env.OUT_DIR }}/.config \
             arch/arm64/configs/vendor/debugfs.config \
             arch/arm64/configs/vendor/ext_config/moto-bengal.config \
-            arch/arm64/configs/vendor/ext_config/rhode-default.config
+            arch/arm64/configs/vendor/ext_config/hawao-default.config
 
           # Paso 3: resolver conflictos y aplicar valores por defecto
           make ${{ env.args }} olddefconfig
@@ -162,7 +162,7 @@ jobs:
       - name: "💛 Upload Image"
         uses: actions/upload-artifact@v4
         with:
-          name: Image-rhode-${{ env.kernelBranch }}
+          name: Image-hawao-${{ env.kernelBranch }}
           path: ./${{ env.kernelDir }}/${{ env.kernelName }}/${{ env.OUT_DIR }}/arch/arm64/boot/Image
           if-no-files-found: warn
           retention-days: 7
@@ -170,7 +170,7 @@ jobs:
       - name: "💙 Upload Image.gz"
         uses: actions/upload-artifact@v4
         with:
-          name: Image.gz-rhode-${{ env.kernelBranch }}
+          name: Image.gz-hawao-${{ env.kernelBranch }}
           path: ./${{ env.kernelDir }}/${{ env.kernelName }}/${{ env.OUT_DIR }}/arch/arm64/boot/Image.gz
           if-no-files-found: warn
           retention-days: 7
@@ -178,7 +178,7 @@ jobs:
       - name: "💜 Upload dtb"
         uses: actions/upload-artifact@v4
         with:
-          name: dtb-rhode-${{ env.kernelBranch }}
+          name: dtb-hawao-${{ env.kernelBranch }}
           path: ./${{ env.kernelDir }}/${{ env.kernelName }}/${{ env.OUT_DIR }}/arch/arm64/boot/dtb
           if-no-files-found: warn
           retention-days: 7
@@ -186,7 +186,7 @@ jobs:
       - name: "❤️ Upload dtbo.img"
         uses: actions/upload-artifact@v4
         with:
-          name: dtbo.img-rhode-${{ env.kernelBranch }}
+          name: dtbo.img-hawao-${{ env.kernelBranch }}
           path: ./${{ env.kernelDir }}/${{ env.kernelName }}/${{ env.OUT_DIR }}/arch/arm64/boot/dtbo.img
           if-no-files-found: warn
           retention-days: 7
