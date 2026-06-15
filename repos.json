@@ -1,10 +1,10 @@
 [
   {
     "kernelSource": {
-      "name": "rhode-kernel",
+      "name": "hawao-kernel",
       "repo": "https://github.com/AndroDumb/android_kernel_motorola_sm6225",
       "branch": "lineage-23.2",
-      "device": "rhode"
+      "device": "hawao"
     },
     "withKernelSU": true,
     "toolchains": [
