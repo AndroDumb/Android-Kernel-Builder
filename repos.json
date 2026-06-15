@@ -1,10 +1,10 @@
 [
   {
     "kernelSource": {
-      "name": "devon-kernel",
+      "name": "rhode-kernel",
       "repo": "https://github.com/AndroDumb/android_kernel_motorola_sm6225",
       "branch": "lineage-23.2",
-      "device": "devon"
+      "device": "rhode"
     },
     "withKernelSU": true,
     "toolchains": [
