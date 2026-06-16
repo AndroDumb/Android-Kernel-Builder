@@ -60,13 +60,14 @@ jobs:
           git clone --recursive --branch ${{ env.kernelBranch }} \
             ${{ env.kernelRepo }} ${{ env.kernelName }} --depth=1
 
-      - name: "💫 Get Clang toolchain (clang-r450784d — exact Clang 14.0.6)"
+      - name: "💫 Get Clang toolchain (Droidian clang-r450784d)"
         working-directory: ./${{ env.kernelDir }}
         run: |
           git clone --depth=1 \
+            --branch droidian \
             --filter=blob:none \
             --sparse \
-            https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 \
+            https://github.com/droidian/android-platform-prebuilts-clang-host-linux-x86-33 \
             clang-prebuilts
           cd clang-prebuilts
           git sparse-checkout set clang-r450784d
