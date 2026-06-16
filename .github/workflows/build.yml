@@ -61,21 +61,21 @@ jobs:
             ${{ env.kernelRepo }} ${{ env.kernelName }} --depth=1
 
       - name: "💫 Get Clang toolchain (clang-r450784d)"
-  working-directory: ./${{ env.kernelDir }}
-  run: |
-    wget -q --show-progress \
-      "https://github.com/AndroDumb/clang-r450784d/releases/download/master/clang-r450784d-master.zip" \
-      -O clang.zip
+       working-directory: ./${{ env.kernelDir }}
+       run: |
+         wget -q --show-progress \
+         "https://github.com/AndroDumb/clang-r450784d/releases/download/master/clang-r450784d-master.zip" \
+        -O clang.zip
 
-    unzip -q clang.zip
-    rm clang.zip
+         unzip -q clang.zip
+         rm clang.zip
 
-    CLANG_DIR=$(find . -maxdepth 1 -name "clang-r450784d-master" -type d)
+        CLANG_DIR=$(find . -maxdepth 1 -name "clang-r450784d-master" -type d)
 
-    echo "$(pwd)/$CLANG_DIR/bin" >> $GITHUB_PATH
+        echo "$(pwd)/$CLANG_DIR/bin" >> $GITHUB_PATH
 
-    echo "Clang version:"
-    $(pwd)/$CLANG_DIR/bin/clang --version
+        echo "Clang version:"
+        $(pwd)/$CLANG_DIR/bin/clang --version
 
       - name: "💫 Get GAS (binutils)"
         working-directory: ./${{ env.kernelDir }}
