@@ -63,16 +63,20 @@ jobs:
       - name: "💫 Get Clang toolchain (Droidian clang-r450784d)"
         working-directory: ./${{ env.kernelDir }}
         run: |
+          # Clonamos directamente la rama 'droidian' al completo
+          # Eliminamos --sparse y el filtro de blobs para asegurar que descargue TODO
           git clone --depth=1 \
             --branch droidian \
-            --filter=blob:none \
-            --sparse \
             https://github.com/droidian/android-platform-prebuilts-clang-host-linux-x86-33 \
             clang-prebuilts
-          cd clang-prebuilts
-          git sparse-checkout set clang-r450784d
-          cd ..
+
+          # Verificación para tu seguridad en los logs de GitHub:
+          echo "Comprobando que el compilador existe en la ruta:"
+          ls -la clang-prebuilts/clang-r450784d/bin/clang
+
+          # Agregamos la ruta al PATH manteniendo tu estructura original
           echo "$(pwd)/clang-prebuilts/clang-r450784d/bin" >> $GITHUB_PATH
+          
           echo "Clang version:"
           $(pwd)/clang-prebuilts/clang-r450784d/bin/clang --version
 
