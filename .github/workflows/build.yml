@@ -60,23 +60,18 @@ jobs:
           git clone --recursive --branch ${{ env.kernelBranch }} \
             ${{ env.kernelRepo }} ${{ env.kernelName }} --depth=1
 
-      - name: "💫 Get Clang toolchain (Droidian clang-r450784d)"
+      - name: "💫 Get Clang toolchain (clang-r450784d — exact Clang 14.0.6)"
         working-directory: ./${{ env.kernelDir }}
         run: |
-          # Clonamos directamente la rama 'droidian' al completo
-          # Eliminamos --sparse y el filtro de blobs para asegurar que descargue TODO
           git clone --depth=1 \
-            --branch droidian \
-            https://github.com/droidian/android-platform-prebuilts-clang-host-linux-x86-33 \
+            --filter=blob:none \
+            --sparse \
+            https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 \
             clang-prebuilts
-
-          # Verificación para tu seguridad en los logs de GitHub:
-          echo "Comprobando que el compilador existe en la ruta:"
-          ls -la clang-prebuilts/clang-r450784d/bin/clang
-
-          # Agregamos la ruta al PATH manteniendo tu estructura original
+          cd clang-prebuilts
+          git sparse-checkout set clang-r450784d
+          cd ..
           echo "$(pwd)/clang-prebuilts/clang-r450784d/bin" >> $GITHUB_PATH
-          
           echo "Clang version:"
           $(pwd)/clang-prebuilts/clang-r450784d/bin/clang --version
 
@@ -127,7 +122,7 @@ jobs:
 
           # Paso 2: instalar KernelSU de rsuntk
           curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" \
-            | bash -s v3.2.2-10-legacy
+            | bash -s main
 
           # Paso 3: activar kprobes en defconfig (por si acaso)
           DEFCONFIG="arch/arm64/configs/vendor/bengal-perf_defconfig"
