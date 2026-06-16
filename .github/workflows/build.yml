@@ -60,19 +60,20 @@ jobs:
           git clone --recursive --branch ${{ env.kernelBranch }} \
             ${{ env.kernelRepo }} ${{ env.kernelName }} --depth=1
 
-      - name: "💫 Get Clang toolchain (clang-r450784d via NDK r26)"
+      - name: "💫 Get Clang toolchain (clang-r450784d — exact Clang 14.0.6)"
         working-directory: ./${{ env.kernelDir }}
         run: |
-          wget -q --show-progress \
-            "https://dl.google.com/android/repository/android-ndk-r26-linux.zip" \
-            -O ndk.zip
-          unzip -q ndk.zip
-          rm ndk.zip
-          NDK_DIR=$(find . -maxdepth 1 -name "android-ndk-r26" -type d)
-          CLANG_DIR="$NDK_DIR/toolchains/llvm/prebuilt/linux-x86_64"
-          echo "$(pwd)/$CLANG_DIR/bin" >> $GITHUB_PATH
+          git clone --depth=1 \
+            --filter=blob:none \
+            --sparse \
+            https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 \
+            clang-prebuilts
+          cd clang-prebuilts
+          git sparse-checkout set clang-r450784d
+          cd ..
+          echo "$(pwd)/clang-prebuilts/clang-r450784d/bin" >> $GITHUB_PATH
           echo "Clang version:"
-          $(pwd)/$CLANG_DIR/bin/clang --version
+          $(pwd)/clang-prebuilts/clang-r450784d/bin/clang --version
 
       - name: "💫 Get GAS (binutils)"
         working-directory: ./${{ env.kernelDir }}
