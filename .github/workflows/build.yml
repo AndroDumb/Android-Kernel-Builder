@@ -63,17 +63,18 @@ jobs:
       - name: "💫 Get Clang toolchain (GitLab - clang-r450784d)"
         working-directory: ./${{ env.kernelDir }}
         run: |
-          # Clonamos directamente el repositorio de GitLab (es mucho más liviano y directo)
-          git clone --depth=1 \
-            https://gitlab.com/SwapnilVicky/clang-r450784d \
-            clang-prebuilts
+          # 1. Clonamos el Clang de GitLab de forma limpia
+          git clone --depth=1 https://gitlab.com/SwapnilVicky/clang-r450784d clang-prebuilts
 
-          # Añadimos la carpeta 'bin' que está en la raíz de la descarga al PATH de GitHub
+          # 2. Añadimos su carpeta bin al PATH global de GitHub Actions
           echo "$(pwd)/clang-prebuilts/bin" >> $GITHUB_PATH
 
-          # Verificamos que se ejecute correctamente
-          echo "Clang version:"
-          $(pwd)/clang-prebuilts/bin/clang --version
+          # 3. SOLUCIÓN AL ERROR: Forzamos a que las herramientas de HOST usen GCC del sistema.
+          # Esto evita que Clang intente compilar sign-file.c y rompa por OpenSSL.
+          echo "HOSTCC=gcc" >> $GITHUB_ENV
+          echo "HOSTCXX=g++" >> $GITHUB_ENV
+
+          echo "✅ Clang configurado y variables de Host inyectadas con éxito"
 
       - name: "💫 Get GAS (binutils)"
         working-directory: ./${{ env.kernelDir }}
