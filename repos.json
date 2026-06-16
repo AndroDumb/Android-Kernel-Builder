@@ -9,10 +9,10 @@
     "withKernelSU": true,
     "toolchains": [
       {
-        "repo": "https://gitlab.com/SwapnilVicky/clang-r450784d",
-        "branch": "master",
+        "repo": "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86",
+        "branch": "main",
         "name": "clang-r450784d",
-        "subdir": "."
+        "subdir": "clang-r450784d"
       },
       {
         "repo": "https://android.googlesource.com/platform/prebuilts/gas/linux-x86",
