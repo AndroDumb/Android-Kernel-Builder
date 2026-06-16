@@ -60,21 +60,20 @@ jobs:
           git clone --recursive --branch ${{ env.kernelBranch }} \
             ${{ env.kernelRepo }} ${{ env.kernelName }} --depth=1
 
-      - name: "💫 Get Clang toolchain (GitLab - clang-r450784d)"
+      - name: "💫 Get Clang toolchain (clang-r450784d — exact Clang 14.0.6)"
         working-directory: ./${{ env.kernelDir }}
         run: |
-          # 1. Clonamos el Clang de GitLab de forma limpia
-          git clone --depth=1 https://gitlab.com/SwapnilVicky/clang-r450784d clang-prebuilts
-
-          # 2. Añadimos su carpeta bin al PATH global de GitHub Actions
-          echo "$(pwd)/clang-prebuilts/bin" >> $GITHUB_PATH
-
-          # 3. SOLUCIÓN AL ERROR: Forzamos a que las herramientas de HOST usen GCC del sistema.
-          # Esto evita que Clang intente compilar sign-file.c y rompa por OpenSSL.
-          echo "HOSTCC=gcc" >> $GITHUB_ENV
-          echo "HOSTCXX=g++" >> $GITHUB_ENV
-
-          echo "✅ Clang configurado y variables de Host inyectadas con éxito"
+          git clone --depth=1 \
+            --filter=blob:none \
+            --sparse \
+            https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 \
+            clang-prebuilts
+          cd clang-prebuilts
+          git sparse-checkout set clang-r450784d
+          cd ..
+          echo "$(pwd)/clang-prebuilts/clang-r450784d/bin" >> $GITHUB_PATH
+          echo "Clang version:"
+          $(pwd)/clang-prebuilts/clang-r450784d/bin/clang --version
 
       - name: "💫 Get GAS (binutils)"
         working-directory: ./${{ env.kernelDir }}
