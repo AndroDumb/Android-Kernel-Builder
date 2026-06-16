@@ -127,7 +127,7 @@ jobs:
 
           # Paso 2: instalar KernelSU de rsuntk
           curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" \
-            | bash -s main
+            | bash -s v3.2.2-10-legacy
 
           # Paso 3: activar kprobes en defconfig (por si acaso)
           DEFCONFIG="arch/arm64/configs/vendor/bengal-perf_defconfig"
