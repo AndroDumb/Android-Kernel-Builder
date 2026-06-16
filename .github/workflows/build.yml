@@ -60,20 +60,20 @@ jobs:
           git clone --recursive --branch ${{ env.kernelBranch }} \
             ${{ env.kernelRepo }} ${{ env.kernelName }} --depth=1
 
-      - name: "💫 Get Clang toolchain (clang-r450784d — exact Clang 14.0.6)"
+      - name: "💫 Get Clang toolchain (GitLab - clang-r450784d)"
         working-directory: ./${{ env.kernelDir }}
         run: |
+          # Clonamos directamente el repositorio de GitLab (es mucho más liviano y directo)
           git clone --depth=1 \
-            --filter=blob:none \
-            --sparse \
-            https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 \
+            https://gitlab.com/SwapnilVicky/clang-r450784d \
             clang-prebuilts
-          cd clang-prebuilts
-          git sparse-checkout set clang-r450784d
-          cd ..
-          echo "$(pwd)/clang-prebuilts/clang-r450784d/bin" >> $GITHUB_PATH
+
+          # Añadimos la carpeta 'bin' que está en la raíz de la descarga al PATH de GitHub
+          echo "$(pwd)/clang-prebuilts/bin" >> $GITHUB_PATH
+
+          # Verificamos que se ejecute correctamente
           echo "Clang version:"
-          $(pwd)/clang-prebuilts/clang-r450784d/bin/clang --version
+          $(pwd)/clang-prebuilts/bin/clang --version
 
       - name: "💫 Get GAS (binutils)"
         working-directory: ./${{ env.kernelDir }}
