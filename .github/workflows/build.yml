@@ -74,14 +74,6 @@ jobs:
           echo "Clang version:"
           $(pwd)/$CLANG_DIR/bin/clang --version
 
-      - name: "💫 Get GAS (binutils)"
-        working-directory: ./${{ env.kernelDir }}
-        run: |
-          git clone --depth=1 \
-            https://android.googlesource.com/platform/prebuilts/gas/linux-x86 \
-            gas
-          echo "$(pwd)/gas" >> $GITHUB_PATH
-
       - name: "😎 Set build args"
         id: generate-args
         working-directory: ./${{ env.kernelDir }}
@@ -102,6 +94,7 @@ jobs:
           ARGS="$ARGS OBJDUMP=llvm-objdump"
           ARGS="$ARGS STRIP=llvm-strip"
           ARGS="$ARGS LD=ld.lld"
+          ARGS="$ARGS LLVM_IAS=1"
 
           echo "ARCH=arm64" >> $GITHUB_ENV
           echo "args=$ARGS" >> $GITHUB_OUTPUT
