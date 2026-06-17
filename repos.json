@@ -2,11 +2,11 @@
   {
     "kernelSource": {
       "name": "hawao-kernel",
-      "repo": "https://github.com/AndroDumb/android_kernel_motorola_sm6225",
+      "repo": "https://github.com/LineageOS/android_kernel_motorola_sm6225",
       "branch": "lineage-20",
       "device": "hawao"
     },
-    "withKernelSU": true,
+    "withKernelSU": false,
     "toolchains": [
       {
         "name": "clang-r450784d",
