@@ -136,7 +136,6 @@ jobs:
           # Paso 2: fusionar overlays en orden correcto
           ./scripts/kconfig/merge_config.sh -m -O ${{ env.OUT_DIR }} \
             ${{ env.OUT_DIR }}/.config \
-            arch/arm64/configs/vendor/debugfs.config \
             arch/arm64/configs/vendor/ext_config/moto-bengal.config \
             arch/arm64/configs/vendor/ext_config/hawao-default.config
 
