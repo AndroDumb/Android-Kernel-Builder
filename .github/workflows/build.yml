@@ -32,7 +32,6 @@ jobs:
       fail-fast: false
       matrix:
         repos: ${{ fromJSON(needs.Set-repos.outputs.repos) }}
-
     env:
       kernelDir: ${{ matrix.repos.kernelSource.name }}_${{ matrix.repos.kernelSource.device }}
       kernelName: ${{ matrix.repos.kernelSource.name }}
@@ -61,23 +60,17 @@ jobs:
           git clone --recursive --branch ${{ env.kernelBranch }} \
             ${{ env.kernelRepo }} ${{ env.kernelName }} --depth=1
 
-      - name: "💫 Get Clang toolchain"
+      - name: "💫 Get Clang toolchain (clang-r450784d)"
         working-directory: ./${{ env.kernelDir }}
         run: |
           wget -q --show-progress \
             "https://github.com/AndroDumb/clang-r450784d/releases/download/master/clang-r450784d-master.zip" \
             -O clang.zip
-
           unzip -q clang.zip
           rm clang.zip
-
-          CLANG_DIR=$(find . -maxdepth 1 -type d -name "clang-*")
-
+          # El zip contiene la carpeta clang-r450784d-master con bin/, lib/, etc. dentro
+          CLANG_DIR="clang-r450784d-master"
           echo "$(pwd)/$CLANG_DIR/bin" >> $GITHUB_PATH
-
-          echo "Toolchain:"
-          echo "$(pwd)/$CLANG_DIR"
-
           echo "Clang version:"
           $(pwd)/$CLANG_DIR/bin/clang --version
 
@@ -120,14 +113,17 @@ jobs:
         run: |
           rm -rf KernelSU drivers/kernelsu
 
+          # Paso 1: aplicar el patch manual de hooks para kernel 4.19
           curl -LSs "https://raw.githubusercontent.com/rksuorg/kernel_patches/master/manual_hook/kernel-4.19_5.4.patch" \
             -o manual_hook.patch
           patch -p1 < manual_hook.patch
           rm manual_hook.patch
 
+          # Paso 2: instalar KernelSU de rsuntk
           curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" \
             | bash -s main
 
+          # Paso 3: activar kprobes en defconfig (por si acaso)
           DEFCONFIG="arch/arm64/configs/vendor/bengal-perf_defconfig"
           grep -q "CONFIG_KPROBES=y" $DEFCONFIG || echo -e "\nCONFIG_KPROBES=y" >> $DEFCONFIG
           grep -q "CONFIG_HAVE_KPROBES=y" $DEFCONFIG || echo -e "\nCONFIG_HAVE_KPROBES=y" >> $DEFCONFIG
@@ -141,14 +137,17 @@ jobs:
         env:
           args: ${{ steps.generate-args.outputs.args }}
         run: |
+          # Paso 1: generar .config base
           make ${{ env.args }} vendor/bengal-perf_defconfig
 
+          # Paso 2: fusionar overlays en orden correcto
           ./scripts/kconfig/merge_config.sh -m -O ${{ env.OUT_DIR }} \
             ${{ env.OUT_DIR }}/.config \
             arch/arm64/configs/vendor/debugfs.config \
             arch/arm64/configs/vendor/ext_config/moto-bengal.config \
             arch/arm64/configs/vendor/ext_config/hawao-default.config
 
+          # Paso 3: resolver conflictos y aplicar valores por defecto
           make ${{ env.args }} olddefconfig
 
           echo "✅ Defconfig final generado"
