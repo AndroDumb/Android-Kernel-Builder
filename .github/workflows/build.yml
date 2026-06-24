@@ -60,16 +60,16 @@ jobs:
           git clone --recursive --branch ${{ env.kernelBranch }} \
             ${{ env.kernelRepo }} ${{ env.kernelName }} --depth=1
 
-      - name: "💫 Get Clang toolchain (clang-r563880c via NDK r29)"
+      - name: "💫 Get Clang toolchain (clang-r450784d, prebuilt android13-release)"
         working-directory: ./${{ env.kernelDir }}
         run: |
           wget -q --show-progress \
-            "https://dl.google.com/android/repository/android-ndk-r29-linux.zip" \
-            -O ndk.zip
-          unzip -q ndk.zip
-          rm ndk.zip
-          NDK_DIR=$(find . -maxdepth 1 -name "android-ndk-r29" -type d)
-          CLANG_DIR="$NDK_DIR/toolchains/llvm/prebuilt/linux-x86_64"
+            "https://github.com/AndroDumb/clang-repo/releases/download/tiramisu/linux-x86-refs_heads_android13-release-clang-r450784d.tar.gz" \
+            -O clang.tar.gz
+          mkdir -p clang-r450784d
+          tar -xzf clang.tar.gz -C clang-r450784d
+          rm clang.tar.gz
+          CLANG_DIR="clang-r450784d"
           echo "$(pwd)/$CLANG_DIR/bin" >> $GITHUB_PATH
           echo "Clang version:"
           $(pwd)/$CLANG_DIR/bin/clang --version
