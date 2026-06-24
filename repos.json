@@ -2,15 +2,17 @@
   {
     "kernelSource": {
       "name": "hawao-kernel",
-      "repo": "https://github.com/LineageOS/android_kernel_motorola_sm6225",
-      "branch": "lineage-20",
+      "repo": "https://github.com/AndroDumb/android_kernel_motorola_sm6225",
+      "branch": "lineage-23.2",
       "device": "hawao"
     },
-    "withKernelSU": false,
+    "withKernelSU": true,
     "toolchains": [
       {
-        "name": "clang-r450784d",
-        "url": "https://github.com/AndroDumb/clang-r450784d/releases/download/master/clang-r450784d-master.zip"
+        "repo": "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86",
+        "branch": "main",
+        "name": "clang-r563880c",
+        "subdir": "clang-r563880c"
       },
       {
         "repo": "https://android.googlesource.com/platform/prebuilts/gas/linux-x86",
@@ -21,15 +23,10 @@
     "params": {
       "ARCH": "arm64",
       "CROSS_COMPILE": "aarch64-linux-gnu-",
-      "CROSS_COMPILE_ARM32": "arm-linux-gnueabi-",
+      "CROSS_COMPILE_COMPAT": "arm-linux-gnueabi-",
       "CLANG_TRIPLE": "aarch64-linux-gnu-",
       "AR": "llvm-ar",
-      "CC": "clang",
-      "NM": "llvm-nm",
-      "OBJCOPY": "llvm-objcopy",
-      "OBJDUMP": "llvm-objdump",
-      "STRIP": "llvm-strip",
-      "LD": "ld.lld"
+      "CC": "clang"
     }
   }
 ]
