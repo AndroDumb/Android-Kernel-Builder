@@ -160,46 +160,6 @@ jobs:
         run: |
           make ${{ env.args }}
 
-      - name: "🌲 Build dtb and dtbo.img"
-        working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
-        run: |
-          DTS_DIR="${{ env.OUT_DIR }}/arch/arm64/boot/dts/vendor/qcom"
-          BOOT_DIR="${{ env.OUT_DIR }}/arch/arm64/boot"
-
-          echo "Contenido de $DTS_DIR:"
-          ls -la "$DTS_DIR" || { echo "❌ No existe $DTS_DIR, revisa el build del kernel"; exit 1; }
-
-          # --- dtb final: concatenar todos los .dtb base (sin overlays) ---
-          # Ajusta el patrón si tu board usa otro nombre (ej. khaje-moto-base*.dtb)
-          DTB_FILES=$(find "$DTS_DIR" -maxdepth 1 -name '*.dtb' ! -name '*overlay*' | sort)
-          if [ -z "$DTB_FILES" ]; then
-            echo "❌ No se encontraron archivos .dtb base en $DTS_DIR"
-            exit 1
-          fi
-          echo "Concatenando dtb base:"
-          echo "$DTB_FILES"
-          cat $DTB_FILES > "$BOOT_DIR/dtb"
-
-          # --- dtbo.img: empaquetar todos los .dtbo (overlays) con mkdtboimg.py ---
-          DTBO_FILES=$(find "$DTS_DIR" -maxdepth 1 -name '*.dtbo' | sort)
-          if [ -z "$DTBO_FILES" ]; then
-            echo "❌ No se encontraron archivos .dtbo (overlay) en $DTS_DIR"
-            exit 1
-          fi
-          echo "Empaquetando dtbo.img con:"
-          echo "$DTBO_FILES"
-
-          git clone --depth=1 \
-            https://android.googlesource.com/platform/system/libufdt \
-            /tmp/libufdt
-
-          python3 /tmp/libufdt/utils/src/mkdtboimg.py create \
-            "$BOOT_DIR/dtbo.img" \
-            $DTBO_FILES
-
-          echo "✅ dtb y dtbo.img generados:"
-          ls -la "$BOOT_DIR/dtb" "$BOOT_DIR/dtbo.img"
-
       - name: "💛 Upload Image"
         uses: actions/upload-artifact@v4
         with:
