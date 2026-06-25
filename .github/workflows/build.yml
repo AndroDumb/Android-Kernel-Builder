@@ -160,6 +160,38 @@ jobs:
         run: |
           make ${{ env.args }}
 
+      - name: "🧩 Build/generate Image.gz-dtb"
+        working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
+        env:
+          args: ${{ steps.generate-args.outputs.args }}
+        run: |
+          BOOT_DIR="$(pwd)/${{ env.OUT_DIR }}/arch/arm64/boot"
+
+          # Paso 1: intentar que el propio build system genere el target nativo
+          make ${{ env.args }} Image.gz-dtb || true
+
+          # Paso 2: si no existe (el Makefile no define ese target), lo generamos a mano
+          if [ ! -f "$BOOT_DIR/Image.gz-dtb" ]; then
+            echo "⚠️ Target Image.gz-dtb no generado por el Makefile, concatenando manualmente"
+
+            if [ ! -f "$BOOT_DIR/Image.gz" ]; then
+              echo "❌ No existe Image.gz, no se puede generar Image.gz-dtb"
+              exit 1
+            fi
+
+            if [ -f "$BOOT_DIR/dtb" ]; then
+              cat "$BOOT_DIR/Image.gz" "$BOOT_DIR/dtb" > "$BOOT_DIR/Image.gz-dtb"
+              echo "✅ Image.gz-dtb generado manualmente (Image.gz + dtb)"
+            else
+              echo "❌ No existe dtb para concatenar"
+              exit 1
+            fi
+          else
+            echo "✅ Image.gz-dtb generado por el target nativo del Makefile"
+          fi
+
+          ls -la "$BOOT_DIR/Image.gz-dtb"
+
       - name: "💛 Upload Image"
         uses: actions/upload-artifact@v4
         with:
@@ -173,6 +205,14 @@ jobs:
         with:
           name: Image.gz-hawao-${{ env.kernelBranch }}
           path: ./${{ env.kernelDir }}/${{ env.kernelName }}/${{ env.OUT_DIR }}/arch/arm64/boot/Image.gz
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: "🤍 Upload Image.gz-dtb"
+        uses: actions/upload-artifact@v4
+        with:
+          name: Image.gz-dtb-hawao-${{ env.kernelBranch }}
+          path: ./${{ env.kernelDir }}/${{ env.kernelName }}/${{ env.OUT_DIR }}/arch/arm64/boot/Image.gz-dtb
           if-no-files-found: warn
           retention-days: 7
 
