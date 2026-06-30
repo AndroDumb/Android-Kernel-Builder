@@ -73,14 +73,6 @@ jobs:
           echo "Clang version:"
           $(pwd)/clang-r536225/bin/clang --version
 
-      - name: "💫 Get GAS (binutils)"
-        working-directory: ./${{ env.kernelDir }}
-        run: |
-          git clone --depth=1 \
-            https://android.googlesource.com/platform/prebuilts/gas/linux-x86 \
-            gas
-          echo "$(pwd)/gas" >> $GITHUB_PATH
-
       - name: "😎 Set build args"
         id: generate-args
         working-directory: ./${{ env.kernelDir }}
@@ -112,13 +104,13 @@ jobs:
         run: |
           rm -rf KernelSU drivers/kernelsu
 
-          # Parches de KSU para 4.19
+          # parches de KSU para 4.19
           curl -LSs "https://raw.githubusercontent.com/rksuorg/kernel_patches/master/manual_hook/kernel-4.19_5.4.patch" \
             -o manual_hook.patch
           patch -p1 < manual_hook.patch
           rm manual_hook.patch
 
-          # clonar ksu
+          # clonar KSU 
           curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" \
             | bash -s main
 
@@ -145,7 +137,6 @@ jobs:
             arch/arm64/configs/vendor/ext_config/moto-bengal.config \
             arch/arm64/configs/vendor/ext_config/hawao-default.config
 
-          # say wallahi bro
           make ${{ env.args }} olddefconfig
 
           echo "✅ Defconfig final generado"
