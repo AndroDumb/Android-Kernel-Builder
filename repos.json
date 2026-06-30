@@ -13,11 +13,6 @@
         "branch": "vanilla",
         "name": "clang-r536225",
         "subdir": "clang-r536225"
-      },
-      {
-        "repo": "https://android.googlesource.com/platform/prebuilts/gas/linux-x86",
-        "branch": "master",
-        "name": "gas"
       }
     ],
     "params": {
