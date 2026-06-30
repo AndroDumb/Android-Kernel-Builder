@@ -2,18 +2,17 @@
   {
     "kernelSource": {
       "name": "hawao-kernel",
-      "repo": "https://github.com/LineageOS/android_kernel_motorola_sm6225",
-      "branch": "lineage-20",
+      "repo": "https://github.com/AndroDumb/android_kernel_motorola_sm6225",
+      "branch": "lineage-22.2",
       "device": "hawao"
     },
-    "withKernelSU": false,
+    "withKernelSU": true,
     "toolchains": [
       {
         "repo": "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86",
-        "branch": "refs/heads/android13-release",
-        "name": "clang-r450784d",
-        "subdir": "clang-r450784d",
-        "mirrorUrl": "https://github.com/AndroDumb/clang-repo/releases/download/tiramisu/linux-x86-refs_heads_android13-release-clang-r450784d.tar.gz"
+        "branch": "c6d8618",
+        "name": "clang-r536225",
+        "subdir": "clang-r536225"
       },
       {
         "repo": "https://android.googlesource.com/platform/prebuilts/gas/linux-x86",
