@@ -60,19 +60,18 @@ jobs:
           git clone --recursive --branch ${{ env.kernelBranch }} \
             ${{ env.kernelRepo }} ${{ env.kernelName }} --depth=1
 
-      - name: "💫 Get Clang toolchain (clang-r450784d, prebuilt android13-release)"
+      - name: "💫 Get Clang toolchain (clang-r536225 / 19.0.1, pinned commit)"
         working-directory: ./${{ env.kernelDir }}
         run: |
-          wget -q --show-progress \
-            "https://github.com/AndroDumb/clang-repo/releases/download/tiramisu/linux-x86-refs_heads_android13-release-clang-r450784d.tar.gz" \
-            -O clang.tar.gz
-          mkdir -p clang-r450784d
-          tar -xzf clang.tar.gz -C clang-r450784d
-          rm clang.tar.gz
-          CLANG_DIR="clang-r450784d"
-          echo "$(pwd)/$CLANG_DIR/bin" >> $GITHUB_PATH
+          mkdir -p clang-r536225 && cd clang-r536225
+          git init -q
+          git remote add origin https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86
+          git fetch --depth=1 origin c6d8618
+          git checkout -q FETCH_HEAD
+          cd ..
+          echo "$(pwd)/clang-r536225/clang-r536225/bin" >> $GITHUB_PATH
           echo "Clang version:"
-          $(pwd)/$CLANG_DIR/bin/clang --version
+          $(pwd)/clang-r536225/clang-r536225/bin/clang --version
 
       - name: "💫 Get GAS (binutils)"
         working-directory: ./${{ env.kernelDir }}
@@ -102,7 +101,6 @@ jobs:
           ARGS="$ARGS OBJDUMP=llvm-objdump"
           ARGS="$ARGS STRIP=llvm-strip"
           ARGS="$ARGS LD=ld.lld"
-          ARGS="$ARGS LLVM_IAS=1"
 
           echo "ARCH=arm64" >> $GITHUB_ENV
           echo "args=$ARGS" >> $GITHUB_OUTPUT
@@ -114,17 +112,14 @@ jobs:
         run: |
           rm -rf KernelSU drivers/kernelsu
 
-          # Paso 1: aplicar el patch manual de hooks para kernel 4.19
           curl -LSs "https://raw.githubusercontent.com/rksuorg/kernel_patches/master/manual_hook/kernel-4.19_5.4.patch" \
             -o manual_hook.patch
           patch -p1 < manual_hook.patch
           rm manual_hook.patch
 
-          # Paso 2: instalar KernelSU de rsuntk
           curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" \
             | bash -s main
 
-          # Paso 3: activar kprobes en defconfig (por si acaso)
           DEFCONFIG="arch/arm64/configs/vendor/bengal-perf_defconfig"
           grep -q "CONFIG_KPROBES=y" $DEFCONFIG || echo -e "\nCONFIG_KPROBES=y" >> $DEFCONFIG
           grep -q "CONFIG_HAVE_KPROBES=y" $DEFCONFIG || echo -e "\nCONFIG_HAVE_KPROBES=y" >> $DEFCONFIG
@@ -138,17 +133,15 @@ jobs:
         env:
           args: ${{ steps.generate-args.outputs.args }}
         run: |
-          # Paso 1: generar .config base
+
           make ${{ env.args }} vendor/bengal-perf_defconfig
 
-          # Paso 2: fusionar overlays en orden correcto
           ./scripts/kconfig/merge_config.sh -m -O ${{ env.OUT_DIR }} \
             ${{ env.OUT_DIR }}/.config \
             arch/arm64/configs/vendor/debugfs.config \
             arch/arm64/configs/vendor/ext_config/moto-bengal.config \
             arch/arm64/configs/vendor/ext_config/hawao-default.config
 
-          # Paso 3: resolver conflictos y aplicar valores por defecto
           make ${{ env.args }} olddefconfig
 
           echo "✅ Defconfig final generado"
@@ -159,38 +152,6 @@ jobs:
           args: ${{ steps.generate-args.outputs.args }}
         run: |
           make ${{ env.args }}
-
-      - name: "🧩 Build/generate Image.gz-dtb"
-        working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
-        env:
-          args: ${{ steps.generate-args.outputs.args }}
-        run: |
-          BOOT_DIR="$(pwd)/${{ env.OUT_DIR }}/arch/arm64/boot"
-
-          # Paso 1: intentar que el propio build system genere el target nativo
-          make ${{ env.args }} Image.gz-dtb || true
-
-          # Paso 2: si no existe (el Makefile no define ese target), lo generamos a mano
-          if [ ! -f "$BOOT_DIR/Image.gz-dtb" ]; then
-            echo "⚠️ Target Image.gz-dtb no generado por el Makefile, concatenando manualmente"
-
-            if [ ! -f "$BOOT_DIR/Image.gz" ]; then
-              echo "❌ No existe Image.gz, no se puede generar Image.gz-dtb"
-              exit 1
-            fi
-
-            if [ -f "$BOOT_DIR/dtb" ]; then
-              cat "$BOOT_DIR/Image.gz" "$BOOT_DIR/dtb" > "$BOOT_DIR/Image.gz-dtb"
-              echo "✅ Image.gz-dtb generado manualmente (Image.gz + dtb)"
-            else
-              echo "❌ No existe dtb para concatenar"
-              exit 1
-            fi
-          else
-            echo "✅ Image.gz-dtb generado por el target nativo del Makefile"
-          fi
-
-          ls -la "$BOOT_DIR/Image.gz-dtb"
 
       - name: "💛 Upload Image"
         uses: actions/upload-artifact@v4
@@ -205,14 +166,6 @@ jobs:
         with:
           name: Image.gz-hawao-${{ env.kernelBranch }}
           path: ./${{ env.kernelDir }}/${{ env.kernelName }}/${{ env.OUT_DIR }}/arch/arm64/boot/Image.gz
-          if-no-files-found: warn
-          retention-days: 7
-
-      - name: "🤍 Upload Image.gz-dtb"
-        uses: actions/upload-artifact@v4
-        with:
-          name: Image.gz-dtb-hawao-${{ env.kernelBranch }}
-          path: ./${{ env.kernelDir }}/${{ env.kernelName }}/${{ env.OUT_DIR }}/arch/arm64/boot/Image.gz-dtb
           if-no-files-found: warn
           retention-days: 7
 
