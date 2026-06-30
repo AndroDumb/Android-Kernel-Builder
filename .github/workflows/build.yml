@@ -60,18 +60,18 @@ jobs:
           git clone --recursive --branch ${{ env.kernelBranch }} \
             ${{ env.kernelRepo }} ${{ env.kernelName }} --depth=1
 
-      - name: "💫 Get Clang toolchain (clang-r536225 / 19.0.1, pinned commit)"
+      - name: "💫 Get Clang toolchain (clang-r536225 / 19.0.1)"
         working-directory: ./${{ env.kernelDir }}
         run: |
-          mkdir -p clang-r536225 && cd clang-r536225
-          git init -q
-          git remote add origin https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86
-          git fetch --depth=1 origin c6d8618
-          git checkout -q FETCH_HEAD
-          cd ..
-          echo "$(pwd)/clang-r536225/clang-r536225/bin" >> $GITHUB_PATH
+          mkdir -p clang-r536225
+          wget -q --show-progress \
+            "https://github.com/AndroDumb/clang-repo/releases/download/vanilla/linux-x86-refs_heads_llvm-r536225-release-clang-r536225.tar.gz" \
+            -O clang.tar.gz
+          tar -xzf clang.tar.gz -C clang-r536225
+          rm clang.tar.gz
+          echo "$(pwd)/clang-r536225/bin" >> $GITHUB_PATH
           echo "Clang version:"
-          $(pwd)/clang-r536225/clang-r536225/bin/clang --version
+          $(pwd)/clang-r536225/bin/clang --version
 
       - name: "💫 Get GAS (binutils)"
         working-directory: ./${{ env.kernelDir }}
@@ -112,11 +112,13 @@ jobs:
         run: |
           rm -rf KernelSU drivers/kernelsu
 
+          # Parches de KSU para 4.19
           curl -LSs "https://raw.githubusercontent.com/rksuorg/kernel_patches/master/manual_hook/kernel-4.19_5.4.patch" \
             -o manual_hook.patch
           patch -p1 < manual_hook.patch
           rm manual_hook.patch
 
+          # clonar ksu
           curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" \
             | bash -s main
 
@@ -133,15 +135,17 @@ jobs:
         env:
           args: ${{ steps.generate-args.outputs.args }}
         run: |
-
+          # defconfig
           make ${{ env.args }} vendor/bengal-perf_defconfig
 
+          # overlays
           ./scripts/kconfig/merge_config.sh -m -O ${{ env.OUT_DIR }} \
             ${{ env.OUT_DIR }}/.config \
             arch/arm64/configs/vendor/debugfs.config \
             arch/arm64/configs/vendor/ext_config/moto-bengal.config \
             arch/arm64/configs/vendor/ext_config/hawao-default.config
 
+          # say wallahi bro
           make ${{ env.args }} olddefconfig
 
           echo "✅ Defconfig final generado"
