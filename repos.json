@@ -9,8 +9,8 @@
     "withKernelSU": true,
     "toolchains": [
       {
-        "repo": "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86",
-        "branch": "c6d8618",
+        "repo": "https://github.com/AndroDumb/clang-repo/releases/download/vanilla/linux-x86-refs_heads_llvm-r536225-release-clang-r536225.tar.gz",
+        "branch": "vanilla",
         "name": "clang-r536225",
         "subdir": "clang-r536225"
       },
