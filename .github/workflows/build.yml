@@ -60,18 +60,27 @@ jobs:
           git clone --recursive --branch ${{ env.kernelBranch }} \
             ${{ env.kernelRepo }} ${{ env.kernelName }} --depth=1
 
-      - name: "💫 Get Clang toolchain (clang-r536225 / 19.0.1)"
+      - name: "💫 Get Clang toolchain (clang-r563880c via NDK r29)"
         working-directory: ./${{ env.kernelDir }}
         run: |
-          mkdir -p clang-r536225
           wget -q --show-progress \
-            "https://github.com/AndroDumb/clang-repo/releases/download/vanilla/linux-x86-refs_heads_llvm-r536225-release-clang-r536225.tar.gz" \
-            -O clang.tar.gz
-          tar -xzf clang.tar.gz -C clang-r536225
-          rm clang.tar.gz
-          echo "$(pwd)/clang-r536225/bin" >> $GITHUB_PATH
+            "https://dl.google.com/android/repository/android-ndk-r29-linux.zip" \
+            -O ndk.zip
+          unzip -q ndk.zip
+          rm ndk.zip
+          NDK_DIR=$(find . -maxdepth 1 -name "android-ndk-r29" -type d)
+          CLANG_DIR="$NDK_DIR/toolchains/llvm/prebuilt/linux-x86_64"
+          echo "$(pwd)/$CLANG_DIR/bin" >> $GITHUB_PATH
           echo "Clang version:"
-          $(pwd)/clang-r536225/bin/clang --version
+          $(pwd)/$CLANG_DIR/bin/clang --version
+
+      - name: "💫 Get GAS (binutils)"
+        working-directory: ./${{ env.kernelDir }}
+        run: |
+          git clone --depth=1 \
+            https://android.googlesource.com/platform/prebuilts/gas/linux-x86 \
+            gas
+          echo "$(pwd)/gas" >> $GITHUB_PATH
 
       - name: "😎 Set build args"
         id: generate-args
@@ -104,16 +113,17 @@ jobs:
         run: |
           rm -rf KernelSU drivers/kernelsu
 
-          # parches de KSU para 4.19
+          # kernel patches
           curl -LSs "https://raw.githubusercontent.com/rksuorg/kernel_patches/master/manual_hook/kernel-4.19_5.4.patch" \
             -o manual_hook.patch
           patch -p1 < manual_hook.patch
           rm manual_hook.patch
 
-          # clonar KSU 
+          # kernelsu rsuntk bcz others fail
           curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" \
             | bash -s main
 
+          # kbprobes
           DEFCONFIG="arch/arm64/configs/vendor/bengal-perf_defconfig"
           grep -q "CONFIG_KPROBES=y" $DEFCONFIG || echo -e "\nCONFIG_KPROBES=y" >> $DEFCONFIG
           grep -q "CONFIG_HAVE_KPROBES=y" $DEFCONFIG || echo -e "\nCONFIG_HAVE_KPROBES=y" >> $DEFCONFIG
@@ -137,6 +147,7 @@ jobs:
             arch/arm64/configs/vendor/ext_config/moto-bengal.config \
             arch/arm64/configs/vendor/ext_config/hawao-default.config
 
+          # thats all
           make ${{ env.args }} olddefconfig
 
           echo "✅ Defconfig final generado"
