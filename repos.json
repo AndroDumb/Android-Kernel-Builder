@@ -6,7 +6,7 @@
       "branch": "lineage-23.2",
       "device": "hawao"
     },
-    "withKernelSU": true,
+    "withKernelSU": false,
     "toolchains": [
       {
         "repo": "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86",
