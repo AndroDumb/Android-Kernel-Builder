@@ -111,7 +111,7 @@ jobs:
         working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
         if: ${{ env.withKernelSU == 'true' }}
         run: |
-          rm -rf KernelSU drivers/kernelsu
+          # rm -rf KernelSU drivers/kernelsu
 
 
           # clonar ksu
