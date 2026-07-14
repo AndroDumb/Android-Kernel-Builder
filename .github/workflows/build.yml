@@ -113,21 +113,11 @@ jobs:
         run: |
           rm -rf KernelSU drivers/kernelsu
 
-          # kernel patches
-          curl -LSs "https://raw.githubusercontent.com/rksuorg/kernel_patches/master/manual_hook/kernel-4.19_5.4.patch" \
-            -o manual_hook.patch
-          patch -p1 < manual_hook.patch
-          rm manual_hook.patch
 
-          # kernelsu rsuntk bcz others fail
-          curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" \
+          # clonar ksu
+          curl -LSs "https://raw.githubusercontent.com/backslashxx/KernelSU/main/kernel/setup.sh" \
             | bash -s main
 
-          # kbprobes
-          DEFCONFIG="arch/arm64/configs/vendor/bengal-perf_defconfig"
-          grep -q "CONFIG_KPROBES=y" $DEFCONFIG || echo -e "\nCONFIG_KPROBES=y" >> $DEFCONFIG
-          grep -q "CONFIG_HAVE_KPROBES=y" $DEFCONFIG || echo -e "\nCONFIG_HAVE_KPROBES=y" >> $DEFCONFIG
-          grep -q "CONFIG_KPROBE_EVENTS=y" $DEFCONFIG || echo -e "\nCONFIG_KPROBE_EVENTS=y" >> $DEFCONFIG
 
           echo "✅ KernelSU rsuntk integrado con manual hook 4.19"
           cat KernelSU/kernel/Kconfig | head -5 || true
@@ -137,17 +127,16 @@ jobs:
         env:
           args: ${{ steps.generate-args.outputs.args }}
         run: |
-          # defconfig
+          # generar config base
           make ${{ env.args }} vendor/bengal-perf_defconfig
 
-          # overlays
+          # overlays propietarios
           ./scripts/kconfig/merge_config.sh -m -O ${{ env.OUT_DIR }} \
             ${{ env.OUT_DIR }}/.config \
             arch/arm64/configs/vendor/debugfs.config \
             arch/arm64/configs/vendor/ext_config/moto-bengal.config \
             arch/arm64/configs/vendor/ext_config/hawao-default.config
 
-          # thats all
           make ${{ env.args }} olddefconfig
 
           echo "✅ Defconfig final generado"
