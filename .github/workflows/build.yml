@@ -101,6 +101,7 @@ jobs:
           ARGS="$ARGS OBJDUMP=llvm-objdump"
           ARGS="$ARGS STRIP=llvm-strip"
           ARGS="$ARGS LD=ld.lld"
+          ARGS="$ARGS LLVM_IAS=1"
 
           echo "ARCH=arm64" >> $GITHUB_ENV
           echo "args=$ARGS" >> $GITHUB_OUTPUT
