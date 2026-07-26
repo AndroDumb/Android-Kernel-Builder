@@ -107,17 +107,25 @@ jobs:
           echo "args=$ARGS" >> $GITHUB_OUTPUT
           echo "Build args: $ARGS"
 
-      - name: "😋 Integrate KernelSU v1.0.4"
+      - name: "😋 Integrate KernelSU (rsuntk and manual hook for 4.19)"
         working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
         if: ${{ env.withKernelSU == 'true' }}
         run: |
           rm -rf KernelSU drivers/kernelsu
 
-          curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" \
-            | bash -s v0.7.6
+          # hooks for kernel 4.19
+          curl -LSs "https://raw.githubusercontent.com/rksuorg/kernel_patches/master/manual_hook/kernel-4.19_5.4.patch" \
+            -o manual_hook.patch
+          patch -p1 < manual_hook.patch
+          rm manual_hook.patch
 
+          # get rsuntk ksu
+          curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" \
+            | bash -s main
 
-          echo "✅ KernelSU integrado"
+          # kprobes arent necessary cuz im gki 1 duh
+
+          echo "✅ KernelSU rsuntk integrado con manual hook 4.19"
           cat KernelSU/kernel/Kconfig | head -5 || true
 
       - name: "👍 Make merged defconfig (bengal-perf + moto-bengal + hawao)"
