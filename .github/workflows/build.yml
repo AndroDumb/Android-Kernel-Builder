@@ -102,26 +102,30 @@ jobs:
           ARGS="$ARGS OBJDUMP=llvm-objdump"
           ARGS="$ARGS STRIP=llvm-strip"
           ARGS="$ARGS LD=ld.lld"
+          ARGS="$ARGS LLVM_IAS=1"
 
           echo "ARCH=arm64" >> $GITHUB_ENV
           echo "args=$ARGS" >> $GITHUB_OUTPUT
           echo "Build args: $ARGS"
 
-      - name: "😋 Integrate KernelSU-Next v1.0.4"
+      - name: "😋 Integrate KernelSU (rsuntk + manual hook 4.19)"
         working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
         if: ${{ env.withKernelSU == 'true' }}
         run: |
           rm -rf KernelSU drivers/kernelsu
 
-          curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" \
-            | bash -s v1.0.4
+          # patches
+          curl -LSs "https://raw.githubusercontent.com/rksuorg/kernel_patches/master/manual_hook/kernel-4.19_5.4.patch" \
+            -o manual_hook.patch
+          patch -p1 < manual_hook.patch
+          rm manual_hook.patch
 
-          DEFCONFIG="arch/arm64/configs/vendor/bengal-perf_defconfig"
-          grep -q "CONFIG_KPROBES=y" $DEFCONFIG || echo -e "\nCONFIG_KPROBES=y" >> $DEFCONFIG
-          grep -q "CONFIG_HAVE_KPROBES=y" $DEFCONFIG || echo -e "\nCONFIG_HAVE_KPROBES=y" >> $DEFCONFIG
-          grep -q "CONFIG_KPROBE_EVENTS=y" $DEFCONFIG || echo -e "\nCONFIG_KPROBE_EVENTS=y" >> $DEFCONFIG
+          # clone ksu
+          curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" \
+            | bash -s main
 
-          echo "✅ KernelSU-Next v1.0.4 integrado"
+
+          echo "✅ KernelSU rsuntk integrado con manual hook 4.19"
           cat KernelSU/kernel/Kconfig | head -5 || true
 
       - name: "👍 Make merged defconfig (bengal-perf + moto-bengal + hawao)"
@@ -129,17 +133,16 @@ jobs:
         env:
           args: ${{ steps.generate-args.outputs.args }}
         run: |
-          # Paso 1: generar .config base
+          # base config
           make ${{ env.args }} vendor/bengal-perf_defconfig
 
-          # Paso 2: fusionar overlays en orden correcto
+          # overlays
           ./scripts/kconfig/merge_config.sh -m -O ${{ env.OUT_DIR }} \
             ${{ env.OUT_DIR }}/.config \
             arch/arm64/configs/vendor/debugfs.config \
             arch/arm64/configs/vendor/ext_config/moto-bengal.config \
             arch/arm64/configs/vendor/ext_config/hawao-default.config
 
-          # Paso 3: resolver conflictos y aplicar valores por defecto
           make ${{ env.args }} olddefconfig
 
           echo "✅ Defconfig final generado"
