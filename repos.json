@@ -3,7 +3,7 @@
     "kernelSource": {
       "name": "hawao-kernel",
       "repo": "https://github.com/AndroDumb/android_kernel_motorola_sm6225",
-      "branch": "lineage-22.2",
+      "branch": "22.2-experimental",
       "device": "hawao"
     },
     "withKernelSU": true,
