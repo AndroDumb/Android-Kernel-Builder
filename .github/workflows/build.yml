@@ -54,6 +54,10 @@ jobs:
             python3 libarchive-tools bison flex \
             lz4 cpio
 
+      - name: "🔑 Configure credentials"
+        run: |
+          git config --global url."https://${{ secrets.KERNEL }}@github.com/".insteadOf "https://github.com/"
+
       - name: "🌟 Clone kernel source"
         working-directory: ./${{ env.kernelDir }}
         run: |
