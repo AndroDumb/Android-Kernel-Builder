@@ -2,8 +2,8 @@
   {
     "kernelSource": {
       "name": "hawao-kernel",
-      "repo": "https://github.com/AndroDumb/android_kernel_motorola_sm6225",
-      "branch": "lineage-23.0",
+      "repo": "https://github.com/AndroDumb/android_kernel_moto_sm6225",
+      "branch": "peridot-wip",
       "device": "hawao"
     },
     "withKernelSU": true,
