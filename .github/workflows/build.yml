@@ -138,16 +138,6 @@ jobs:
           echo "✅ KernelSU rsuntk + susfs 2.1.0 integrado con manual hook 4.19"
           cat KernelSU/kernel/Kconfig | head -5 || true       
 
-      - name: "Log failed hunks"
-        if: failure()
-        run: |
-          echo "=== fs/namespace.c.rej ==="
-          cat fs/namespace.c.rej 2>/dev/null
-          echo "=== fs/proc/task_mmu.c.rej ==="
-          cat fs/proc/task_mmu.c.rej 2>/dev/null
-          echo "=== kernel/sys.c.rej ==="
-          cat kernel/sys.c.rej 2>/dev/null
-      
       - name: "👍 Make merged defconfig (bengal-perf + moto-bengal + hawao)"
         working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
         env:
