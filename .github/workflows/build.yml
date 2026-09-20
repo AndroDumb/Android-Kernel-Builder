@@ -126,7 +126,7 @@ jobs:
 
           # clone rsuntk ksu susfs 2.1.0
           curl -LSs "https://raw.githubusercontent.com/AndroDumb/KernelSU-SusFS/susfs-rksu-master/kernel/setup.sh" \
-            | bash -s main
+            | bash -s susfs-rksu-master
 
           # susfs 2.1.0 patch 4.19
           curl -LSs "https://raw.githubusercontent.com/AndroDumb/stuff/main/kernel/susfs/2.1.0/susfs_patch_to_4.19.patch" \
