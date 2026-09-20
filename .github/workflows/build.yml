@@ -124,8 +124,8 @@ jobs:
           patch -p1 < manual_hook.patch
           rm manual_hook.patch
 
-          # clone rsuntk ksu
-          curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" \
+          # clone rsuntk ksu susfs 2.1.0
+          curl -LSs "https://raw.githubusercontent.com/AndroDumb/KernelSU-SusFS/susfs-rksu-master/kernel/setup.sh" \
             | bash -s main
 
 
