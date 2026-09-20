@@ -128,8 +128,13 @@ jobs:
           curl -LSs "https://raw.githubusercontent.com/AndroDumb/KernelSU-SusFS/susfs-rksu-master/kernel/setup.sh" \
             | bash -s main
 
+          # susfs 2.1.0 patch 4.19
+          curl -LSs "https://raw.githubusercontent.com/AndroDumb/stuff/main/kernel/susfs/2.1.0/susfs_patch_to_4.19.patch" \
+            -o susfs_patch.patch
+          patch -p1 < susfs_patch.patch
+          rm susfs_patch.patch
 
-          echo "✅ KernelSU rsuntk integrado con manual hook 4.19"
+          echo "✅ KernelSU rsuntk + susfs 2.1.0 integrado con manual hook 4.19"
           cat KernelSU/kernel/Kconfig | head -5 || true
 
       - name: "👍 Make merged defconfig (bengal-perf + moto-bengal + hawao)"
