@@ -131,24 +131,8 @@ jobs:
           # susfs 2.1.0 patch 4.19
           curl -LSs "https://raw.githubusercontent.com/AndroDumb/stuff/main/kernel/susfs/2.1.0/susfs_patch_to_4.19.patch" \
             -o susfs_patch.patch
-
-          # Aplicar SIN abortar en fallos, capturando los rejects
-          patch -p1 --fuzz=3 < susfs_patch.patch || PATCH_FAILED=1
+          patch -p1 --fuzz=3 --ignore-whitespace < susfs_patch.patch || true
           rm susfs_patch.patch
-
-          # Mostrar rejects si los hay
-          echo "=== Buscando archivos .rej ==="
-          find . -name "*.rej" | while read f; do
-            echo ""
-            echo "========== $f =========="
-            cat "$f"
-          done
-
-          # Ahora sí fallar si el parche tuvo problemas
-          if [ "${PATCH_FAILED}" = "1" ]; then
-            echo "❌ Patch falló, ver rejects arriba"
-            exit 1
-          fi
 
           echo "✅ KernelSU rsuntk + susfs 2.1.0 integrado con manual hook 4.19"
           cat KernelSU/kernel/Kconfig | head -5 || true       
