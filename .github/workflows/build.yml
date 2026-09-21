@@ -124,18 +124,13 @@ jobs:
           patch -p1 < manual_hook.patch
           rm manual_hook.patch
 
-          # clone rsuntk ksu susfs 2.1.0
-          curl -LSs "https://raw.githubusercontent.com/AndroDumb/KernelSU-SusFS/susfs-rksu-master/kernel/setup.sh" \
-            | bash -s susfs-rksu-master
+          # clone rsuntk ksu
+          curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" \
+            | bash -s main
 
-          # susfs 2.1.0 patch 4.19
-          curl -LSs "https://raw.githubusercontent.com/AndroDumb/stuff/main/kernel/susfs/2.1.0/susfs_patch_to_4.19.patch" \
-            -o susfs_patch.patch
-          patch -p1 --fuzz=3 --ignore-whitespace < susfs_patch.patch || true
-          rm susfs_patch.patch
 
-          echo "✅ KernelSU rsuntk + susfs 2.1.0 integrado con manual hook 4.19"
-          cat KernelSU/kernel/Kconfig | head -5 || true       
+          echo "✅ KernelSU rsuntk integrado con manual hook 4.19"
+          cat KernelSU/kernel/Kconfig | head -5 || true
 
       - name: "👍 Make merged defconfig (bengal-perf + moto-bengal + hawao)"
         working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
