@@ -56,7 +56,7 @@ jobs:
 
       - name: "🔑 Configure credentials"
         run: |
-          git config --global url."https://${{ secrets.KERNEL }}@github.com/".insteadOf "https://github.com/"
+          git config --global url."https://x-access-token:${{ secrets.KERNEL }}@github.com/".insteadOf "https://github.com/"
 
       - name: "🌟 Clone kernel source"
         working-directory: ./${{ env.kernelDir }}
