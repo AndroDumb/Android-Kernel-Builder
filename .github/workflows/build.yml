@@ -1,0 +1,188 @@
+name: "Build kernel - Motorola G42 (hawao)"
+
+env:
+  CONFIGURATION: "repos.json"
+  OUT_DIR: "out"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  Set-repos:
+    name: "🐂 Parse repos.json"
+    runs-on: ubuntu-latest
+    outputs:
+      repos: ${{ steps.generate-matrix.outputs.repos }}
+    steps:
+      - name: "😄 Checkout"
+        uses: actions/checkout@v4
+
+      - name: "😆 Generate Matrix"
+        id: generate-matrix
+        run: |
+          echo "repos=$(jq -c '.' ${{ env.CONFIGURATION }})" >> $GITHUB_OUTPUT
+
+  Build-Kernel:
+    name: "🐎 Build kernel - hawao"
+    runs-on: ubuntu-latest
+    needs:
+      - Set-repos
+    strategy:
+      max-parallel: 1
+      fail-fast: false
+      matrix:
+        repos: ${{ fromJSON(needs.Set-repos.outputs.repos) }}
+    env:
+      kernelDir: ${{ matrix.repos.kernelSource.name }}_${{ matrix.repos.kernelSource.device }}
+      kernelName: ${{ matrix.repos.kernelSource.name }}
+      kernelRepo: ${{ matrix.repos.kernelSource.repo }}
+      kernelBranch: ${{ matrix.repos.kernelSource.branch }}
+      kernelDevice: ${{ matrix.repos.kernelSource.device }}
+      withKernelSU: ${{ matrix.repos.withKernelSU }}
+
+    steps:
+      - name: "✨ Create working dir"
+        run: mkdir -p ${{ env.kernelDir }}
+
+      - name: "⭐ Install prerequisites"
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential bc curl git zip ftp \
+            gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi \
+            libssl-dev lftp zstd wget libfl-dev \
+            python3 libarchive-tools bison flex \
+            lz4 cpio
+
+      - name: "🌟 Clone kernel source"
+        working-directory: ./${{ env.kernelDir }}
+        run: |
+          git clone --recursive --branch ${{ env.kernelBranch }} \
+            ${{ env.kernelRepo }} ${{ env.kernelName }} --depth=1
+
+      - name: "💫 Get Clang toolchain (clang-r450784d, android13-release)"
+        working-directory: ./${{ env.kernelDir }}
+        run: |
+          wget -q --show-progress \
+            "https://github.com/AndroDumb/clang-repo/releases/download/tiramisu/linux-x86-refs_heads_android13-release-clang-r450784d.tar.gz" \
+            -O clang.tar.gz
+          mkdir -p clang-r450784d
+          tar -xzf clang.tar.gz -C clang-r450784d
+          rm clang.tar.gz
+          echo "$(pwd)/clang-r450784d/bin" >> $GITHUB_PATH
+          echo "Clang version:"
+          $(pwd)/clang-r450784d/bin/clang --version
+
+      - name: "💫 Get GAS (binutils)"
+        working-directory: ./${{ env.kernelDir }}
+        run: |
+          git clone --depth=1 \
+            https://android.googlesource.com/platform/prebuilts/gas/linux-x86 \
+            gas
+          echo "$(pwd)/gas" >> $GITHUB_PATH
+
+      - name: "😎 Set build args"
+        id: generate-args
+        working-directory: ./${{ env.kernelDir }}
+        run: |
+          THREADS=$(nproc --all)
+          mkdir -p $(pwd)/${{ env.kernelName }}/${{ env.OUT_DIR }}
+
+          ARGS="-j${THREADS}"
+          ARGS="$ARGS O=$(pwd)/${{ env.kernelName }}/${{ env.OUT_DIR }}"
+          ARGS="$ARGS ARCH=arm64"
+          ARGS="$ARGS CROSS_COMPILE=aarch64-linux-gnu-"
+          ARGS="$ARGS CROSS_COMPILE_ARM32=arm-linux-gnueabi-"
+          ARGS="$ARGS CLANG_TRIPLE=aarch64-linux-gnu-"
+          ARGS="$ARGS AR=llvm-ar"
+          ARGS="$ARGS CC=clang"
+          ARGS="$ARGS NM=llvm-nm"
+          ARGS="$ARGS OBJCOPY=llvm-objcopy"
+          ARGS="$ARGS OBJDUMP=llvm-objdump"
+          ARGS="$ARGS STRIP=llvm-strip"
+          ARGS="$ARGS LD=ld.lld"
+          ARGS="$ARGS LLVM_IAS=1"
+
+          echo "ARCH=arm64" >> $GITHUB_ENV
+          echo "args=$ARGS" >> $GITHUB_OUTPUT
+          echo "Build args: $ARGS"
+
+      - name: "😋 Integrate KernelSU (rsuntk and manual hook for 4.19)"
+        working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
+        if: ${{ env.withKernelSU == 'true' }}
+        run: |
+          rm -rf KernelSU drivers/kernelsu
+
+          # hooks for kernel 4.19
+          curl -LSs "https://raw.githubusercontent.com/rksuorg/kernel_patches/master/manual_hook/kernel-4.19_5.4.patch" \
+            -o manual_hook.patch
+          patch -p1 < manual_hook.patch
+          rm manual_hook.patch
+
+          # get rsuntk ksu
+          curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" \
+            | bash -s main
+
+          # kprobes arent necessary cuz im gki 1 duh
+
+          echo "✅ KernelSU rsuntk integrado con manual hook 4.19"
+          cat KernelSU/kernel/Kconfig | head -5 || true
+
+      - name: "👍 Make merged defconfig (bengal-perf + moto-bengal + hawao)"
+        working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
+        env:
+          args: ${{ steps.generate-args.outputs.args }}
+        run: |
+          # Paso 1: generar .config base
+          make ${{ env.args }} vendor/bengal-perf_defconfig
+
+          # Paso 2: fusionar overlays en orden correcto
+          ./scripts/kconfig/merge_config.sh -m -O ${{ env.OUT_DIR }} \
+            ${{ env.OUT_DIR }}/.config \
+            arch/arm64/configs/vendor/debugfs.config \
+            arch/arm64/configs/vendor/ext_config/moto-bengal.config \
+            arch/arm64/configs/vendor/ext_config/hawao-default.config
+
+          # Paso 3: resolver conflictos y aplicar valores por defecto
+          make ${{ env.args }} olddefconfig
+
+          echo "✅ Defconfig final generado"
+
+      - name: "🎶 Build kernel"
+        working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
+        env:
+          args: ${{ steps.generate-args.outputs.args }}
+        run: |
+          make ${{ env.args }}
+
+      - name: "💛 Upload Image"
+        uses: actions/upload-artifact@v4
+        with:
+          name: Image-hawao-${{ env.kernelBranch }}
+          path: ./${{ env.kernelDir }}/${{ env.kernelName }}/${{ env.OUT_DIR }}/arch/arm64/boot/Image
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: "💙 Upload Image.gz"
+        uses: actions/upload-artifact@v4
+        with:
+          name: Image.gz-hawao-${{ env.kernelBranch }}
+          path: ./${{ env.kernelDir }}/${{ env.kernelName }}/${{ env.OUT_DIR }}/arch/arm64/boot/Image.gz
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: "💜 Upload dtb"
+        uses: actions/upload-artifact@v4
+        with:
+          name: dtb-hawao-${{ env.kernelBranch }}
+          path: ./${{ env.kernelDir }}/${{ env.kernelName }}/${{ env.OUT_DIR }}/arch/arm64/boot/dtb
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: "❤️ Upload dtbo.img"
+        uses: actions/upload-artifact@v4
+        with:
+          name: dtbo.img-hawao-${{ env.kernelBranch }}
+          path: ./${{ env.kernelDir }}/${{ env.kernelName }}/${{ env.OUT_DIR }}/arch/arm64/boot/dtbo.img
+          if-no-files-found: warn
+          retention-days: 7
