@@ -1,0 +1,32 @@
+[
+  {
+    "kernelSource": {
+      "name": "hawao-kernel",
+      "repo": "https://github.com/AndroDumb/android_kernel_motorola_sm6225",
+      "branch": "lineage-23.2",
+      "device": "hawao"
+    },
+    "withKernelSU": true,
+    "toolchains": [
+      {
+        "repo": "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86",
+        "branch": "main",
+        "name": "clang-r563880c",
+        "subdir": "clang-r563880c"
+      },
+      {
+        "repo": "https://android.googlesource.com/platform/prebuilts/gas/linux-x86",
+        "branch": "master",
+        "name": "gas"
+      }
+    ],
+    "params": {
+      "ARCH": "arm64",
+      "CROSS_COMPILE": "aarch64-linux-gnu-",
+      "CROSS_COMPILE_COMPAT": "arm-linux-gnueabi-",
+      "CLANG_TRIPLE": "aarch64-linux-gnu-",
+      "AR": "llvm-ar",
+      "CC": "clang"
+    }
+  }
+]
