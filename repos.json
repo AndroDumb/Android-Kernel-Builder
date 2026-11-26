@@ -3,7 +3,7 @@
     "kernelSource": {
       "name": "hawao-kernel",
       "repo": "https://github.com/AndroDumb/android_kernel_moto_sm6225",
-      "branch": "peridot-legacy-ksu-susfs",
+      "branch": "peridot-legacy-ksu-susfs-erofs",
       "device": "hawao"
     },
     "withKernelSU": true,
